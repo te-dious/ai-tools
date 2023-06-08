@@ -42,7 +42,7 @@ class ChatwootClient:
         }
         return self._make_get_request(url, headers)
 
-    def get_chatwoot_conversation_text(self, conversation_id: int) -> Tuple[str, Dict[str, str], List[Dict[str, str]], List[Tuple[str, str]]]:
+    def get_chatwoot_conversation_text(self, conversation_id: int):
         """Fetches and formats the conversation text from Chatwoot."""
         if not isinstance(conversation_id, int):
             raise InvalidInputError("conversation_id must be an integer.")
@@ -51,10 +51,10 @@ class ChatwootClient:
         headers = {
             "api_access_token": CHATWOOT_API_TOKEN,
         }
-        messages = self._fetch_messages(url, headers, conversation_id)
-        return self._format_messages(messages)
+        messages, contact = self._fetch_messages(url, headers, conversation_id)
+        return self._format_messages(messages), contact
 
-    def _fetch_messages(self, url: str, headers: Dict[str, str], conversation_id: int) -> List[Dict[str, str]]:
+    def _fetch_messages(self, url: str, headers: Dict[str, str], conversation_id: int):
         # Use your own database credentials here
         messages = ChatwootMessage.query.filter_by(conversation_id=conversation_id).order_by(ChatwootMessage.message_id).all()
 
@@ -66,6 +66,7 @@ class ChatwootClient:
         while True:
             data = self._make_get_request(url, headers)
             payload = data["payload"]
+            contact = data["meta"]["contact"]
             payload.reverse()
             if not payload:
                 break
@@ -108,7 +109,7 @@ class ChatwootClient:
                 break
 
         messages = ChatwootMessage.query.filter_by(conversation_id=conversation_id).order_by(ChatwootMessage.message_id).all()
-        return messages
+        return messages, contact
 
 
     def get_formatted_message_from_message_list(self, messages):

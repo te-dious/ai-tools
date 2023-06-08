@@ -107,9 +107,8 @@ def get_chatwoot_conversation_structured_data(conversation_id):
         result["conversation_summary"] = data.information
     else:
         result["conversation_summary"] = {
-            "status": "in progress"
+            "status": "in_progress"
         }
-
 
     messages = (
         ChatwootMessage.query
@@ -136,9 +135,7 @@ def get_chatwoot_conversation_structured_data(conversation_id):
         else:
             lis.append({
                 "url": attachment_url,
-                "result": {
-                    "status": "in progress"
-                },
+                "status": "in_progress",
             })
 
     result["documents"] = lis
@@ -157,7 +154,7 @@ def extract_chatwoot_conversation_info():
         conversation_id = data.get('conversation_id')
         prompt_template = data.get("prompt_template", CW_CONVERSATION_PROMPT)
         chatwoot_client = ChatwootClient()
-        conversation_text, docs = chatwoot_client.get_chatwoot_conversation_text(conversation_id)
+        conversation_text, docs, contact = chatwoot_client.get_chatwoot_conversation_text(conversation_id)
         text = conversation_text + prompt_template
         text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
 
@@ -192,9 +189,10 @@ def extract_chatwoot_conversation_info():
         op = qa_chain(conversation_text)
 
         result = json.loads(op["result"])
+        result["contact"] = contact
 
         new_message = ExtractedData(
-            text="text", # Should we store the whole text?
+            text=conversation_text, # Should we store the whole text?
             text_hash=text_hash,
             information=result,
             identifier=f"cw-conversation-id-{conversation_id}"
@@ -208,6 +206,26 @@ def extract_chatwoot_conversation_info():
         return jsonify({'message': result})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/chatwoot_docs_webhook', methods=['POST'])
+def chatwoot_docs_webhook():
+    data = request.json
+
+    attachments = data["attachments"][0]
+    send_sqs_messages({
+        "url": attachments["data_url"],
+        "identifier": f"cw-attachment-{attachments['id']}",
+        "conversation_id": data["conversation"]["id"]
+    })
+
+
+@app.route('/extract_text_from_image_util_view', methods=['POST'])
+def extract_text_from_image_util_view():
+    data = request.json
+    return extract_text_from_image_util(data)
+
+
 
 
 if __name__ == '__main__':

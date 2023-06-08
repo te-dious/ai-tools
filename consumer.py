@@ -43,11 +43,13 @@ def process_sqs_messages():
                 try:
                     data = json.loads(message['Body'])
                     # Call your extract_meaningful_info function here with 'data'
-                    with app.app_context():
-                        extract_text_from_image_util(data)
                 except Exception as e:
                     logging.error(f'Error processing message body: {e}')
                     pass
+
+                with app.app_context():
+                    extract_text_from_image_util(data)
+
                 sqs.delete_message(
                     QueueUrl=queue_url,
                     ReceiptHandle=receipt_handle

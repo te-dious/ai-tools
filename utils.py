@@ -81,7 +81,7 @@ def extract_text_from_image_util(data):
     result = json.loads(op["result"])
 
     new_message = ExtractedData(
-        text="string", # should we store the text?
+        text=text, # should we store the text?
         text_hash=text_hash,
         information=result,
         identifier=identifier,
@@ -115,7 +115,7 @@ def send_sqs_messages(message):
     response = sqs.send_message(
         QueueUrl=queue_url,
         MessageBody=message,
-        MessageGroupId=f"conversation-id-{conversation_id}",
+        MessageGroupId=f"cww-{identifier}",
         MessageDeduplicationId=f"cww-{identifier}"
     )
     app.logger.info("SQS message pushed")
