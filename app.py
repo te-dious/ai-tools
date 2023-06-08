@@ -151,7 +151,8 @@ def extract_chatwoot_conversation_info():
 
         data = request.json
 
-        conversation_id = data.get('conversation_id')
+        conversation_id = data.get('conversation_id', '')
+        identifier = data.get("identifier", f"cw-conversation-id-{conversation_id}")
         prompt_template = data.get("prompt_template", CW_CONVERSATION_PROMPT)
         chatwoot_client = ChatwootClient()
         conversation_text, docs, contact = chatwoot_client.get_chatwoot_conversation_text(conversation_id)
@@ -195,7 +196,7 @@ def extract_chatwoot_conversation_info():
             text=conversation_text, # Should we store the whole text?
             text_hash=text_hash,
             information=result,
-            identifier=f"cw-conversation-id-{conversation_id}"
+            identifier=identifier
         )
 
         db.session.add(new_message)
