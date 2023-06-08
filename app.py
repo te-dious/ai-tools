@@ -155,7 +155,7 @@ def extract_chatwoot_conversation_info():
         identifier = data.get("identifier", f"cw-conversation-id-{conversation_id}")
         prompt_template = data.get("prompt_template", CW_CONVERSATION_PROMPT)
         chatwoot_client = ChatwootClient()
-        conversation_text, docs, contact = chatwoot_client.get_chatwoot_conversation_text(conversation_id)
+        (conversation_text, docs), contact = chatwoot_client.get_chatwoot_conversation_text(conversation_id)
         text = conversation_text + prompt_template
         text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
 
