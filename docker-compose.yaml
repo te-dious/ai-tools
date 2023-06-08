@@ -9,3 +9,40 @@ services:
       - "5001:5000"
     volumes:
       - .:/app
+    depends_on:
+      - db
+    networks:
+      - ai-network
+
+  consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    networks:
+      - ai-network
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ai_tools
+      POSTGRES_PASSWORD: my-secret-password
+      POSTGRES_DB: ai
+    volumes:
+      - ai-db-data:/var/lib/postgresql/data
+    networks:
+      - ai-network
+
+volumes:
+  ai-db-data:
+
+networks:
+  ai-network:
+    external: true
