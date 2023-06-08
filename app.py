@@ -212,21 +212,20 @@ def extract_chatwoot_conversation_info():
 @app.route('/chatwoot_docs_webhook', methods=['POST'])
 def chatwoot_docs_webhook():
     data = request.json
-
-    attachments = data["attachments"][0]
-    send_sqs_messages({
-        "url": attachments["data_url"],
-        "identifier": f"cw-attachment-{attachments['id']}",
-        "conversation_id": data["conversation"]["id"]
-    })
+    if data["message_type"] != "incoming":
+        return
+    for attachment in data.get("attachments", []):
+        send_sqs_messages({
+            "url": attachment["data_url"],
+            "identifier": f"cw-attachment-{attachment['id']}",
+            "conversation_id": data["conversation"]["id"]
+        })
 
 
 @app.route('/extract_text_from_image_util_view', methods=['POST'])
 def extract_text_from_image_util_view():
     data = request.json
     return extract_text_from_image_util(data)
-
-
 
 
 if __name__ == '__main__':
