@@ -1,7 +1,7 @@
 version: '3.10'
 
 services:
-  app:
+  ai-tools:
     build:
       context: .
       dockerfile: Dockerfile
@@ -25,7 +25,7 @@ services:
     networks:
       - ai-network
     deploy:
-      replicas: 3
+      replicas: 5
       restart_policy:
         condition: on-failure
 

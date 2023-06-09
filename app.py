@@ -212,6 +212,7 @@ def extract_chatwoot_conversation_info():
 @app.route('/chatwoot_docs_webhook', methods=['POST'])
 def chatwoot_docs_webhook():
     data = request.json
+    app.logger.info(data)
     if data["message_type"] != "incoming":
         return
     for attachment in data.get("attachments", []):
@@ -220,6 +221,7 @@ def chatwoot_docs_webhook():
             "identifier": f"cw-attachment-{attachment['id']}",
             "conversation_id": data["conversation"]["id"]
         })
+    return jsonify({'message': "success"})
 
 
 @app.route('/extract_text_from_image_util_view', methods=['POST'])
