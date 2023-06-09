@@ -289,7 +289,7 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
     result = {}
     if data:
         result["conversation_summary"] = data.information
-
+    result["conversation_summary"].pop("user", None)
     messages = (
         ChatwootMessage.query
         .filter_by(conversation_id=conversation_id)

@@ -10,45 +10,8 @@ CW_CONVERSATION_TO_SD_PROMPT ="""You are an AI trained to analyze structured dat
 Today, FD's value proposition is to provide general insurance agents with a platform to access motor insurance quotations from 20+ insurers and also allow the agents to report the sale via FD to the insurers. FD is responsible for reporting the sale with insurers, dealing with the payment flow and also policy delivery.
 Insurance agents can either chat with staff members for assistance during the buying process or use the online platform provided by the insurtech company. The insurance purchasing process involves obtaining a quote, selecting a plan, submitting required documents, reporting a sale of a policy by giving customer details, making a payment, issuing a policy, and completing the transaction when the policy is physically delivered. Agents can also request renewals for existing policies bought from the company before. In the Thai market, some manual processes may be involved, such as sending payment proof, paying premiums in installments (almost equivalent to a loan), requesting a physical car inspection, manually delivering the policy via postal service, endorsing an existing policy, or change of agent ( COA - switching from one broker to your company).
 Analyze the following structured data mentioned within the triple quotes created from a conversation between a staff member (Agent Success Team) and a broker agent.
-Fill all the relevant information in the following json format do not assume anything.
-{
-    "model_description": {
-        "name": "",
-        "cc": {
-            "name": ""
-        },
-        "make": {
-            "name": ""
-        },
-        "make_model": {
-            "name": ""
-        },
-        "sum_insured": ""
-    },
-    "quotation": {
-        "id": "",
-        "vehicle_number": "",
-        "chassis_number": "",
-        "cover_note_code": "",
-        "client_title": "",
-        "client_first_name": "",
-        "client_last_name": "",
-        "client_phone": "",
-        "policy_start_date": "",
-        "needs_compulsory_insurance": "",
-        "compulsory_start_date": ""
-    },
-    "insurance_class": "",
-    "year": "",
-    "sum_insured": "",
-    "policy_start_date": "",
-    "client_title": "",
-    "client_first_name": "",
-    "client_last_name": "",
-    "client_phone": "",
-    "needs_compulsory_insurance": "",
-    "current_insurer": ""
-}
+Fill all the relevant information for following keys in the following json format do not assume anything.
+list of keys to be present in output:'compulsory_start_date', 'make_model', 'client_title', 'sum_insured', 'insurance_class', 'vehicle_number', 'chassis_number', 'model_description', 'id', 'name', 'client_phone', 'client_last_name', 'policy_start_date', 'client_first_name', 'cover_note_code', 'year', 'make', 'current_insurer', 'cc', 'quotation', 'needs_compulsory_insurance'
 {context}
 Conversation Data: ```{question}:```"""
 
