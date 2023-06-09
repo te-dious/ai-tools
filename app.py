@@ -1,6 +1,6 @@
 import hashlib
 import json
-from constants import CW_CONVERSATION_PROMPT
+from constants import CW_CONVERSATION_PROMPT, CW_CONVERSATION_TO_SD_PROMPT
 from flask import Flask, request, jsonify
 from utils import extract_text_from_image_util, generate_random_string, get_db, get_retriever, get_qa_util, get_qa_chain, extract_text_from_image, InvalidInputError, send_sqs_messages
 from helpers.chroma_db_util import ChromaDBUtil
@@ -276,6 +276,57 @@ def chatwoot_docs_webhook():
             "conversation_id": data["conversation"]["id"]
         })
     return jsonify({'message': "success"})
+
+@app.route('/get_chatwoot_conversation_structured_data_with_documents/<conversation_id>', methods=['GET'])
+def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
+    from helpers.chatwoot_util import ChatwootClient
+    from models import ExtractedData, ChatwootMessage
+
+    chatwoot_client = ChatwootClient()
+    data = ExtractedData.query.filter_by(identifier=f"cw-conversation-id-{conversation_id}").order_by(desc(ExtractedData.id)).first()
+    prompt_template = data.get("prompt_template", CW_CONVERSATION_TO_SD_PROMPT)
+
+    result = {}
+    if data:
+        result["conversation_summary"] = data.information
+
+    messages = (
+        ChatwootMessage.query
+        .filter_by(conversation_id=conversation_id)
+        .filter(ChatwootMessage.attachment_id.isnot(None))
+        .order_by(ChatwootMessage.message_id)
+        .all()
+    )
+
+    conversation_text, docs = chatwoot_client.get_formatted_message_from_message_list(messages)
+    lis = []
+    for doc in docs:
+        attachment_id = doc[1]
+        attachment_url = doc[0]
+        result["documents"] = lis
+        extracted_data = ExtractedData.query.filter_by(identifier=f"cw-attachment-{attachment_id}").order_by(desc(ExtractedData.id)).first()
+        if extracted_data:
+            lis.append({
+                "url": attachment_url,
+                "result": extracted_data.information,
+            })
+
+    result["documents"] = lis
+    result = json.dumps(result)
+
+    collection_name = data.pop('collection_name', "default")
+    chroma_db = get_db(collection_name)
+    data = {
+        "model_name": "gpt-4",
+        "prompt_template": prompt_template,
+        "retriever":  get_retriever(chroma_db),
+    }
+    qa_util = get_qa_util(data)
+    qa_chain = get_qa_chain(qa_util)
+    op = qa_chain(result)
+    result = json.loads(op["result"])
+
+    return jsonify({'message': result})
 
 
 @app.route('/extract_text_from_image_util_view', methods=['POST'])
