@@ -1,4 +1,6 @@
-# utils.py
+
+import random
+import string
 import boto3
 import hashlib
 import json
@@ -122,3 +124,9 @@ def send_sqs_messages(message):
     app.logger.info("SQS message pushed")
     app.logger.info(response)
 
+def generate_random_string(length):
+    # Define the characters to use
+    characters = string.ascii_letters + string.digits
+    # Generate the random string
+    random_string = ''.join(random.choice(characters) for i in range(length))
+    return random_string

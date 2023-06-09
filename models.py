@@ -10,6 +10,7 @@ class ChatwootMessage(db.Model):
     message_created_at = db.Column(db.Integer, nullable=False)
     message_type = db.Column(db.Integer, nullable=False)
     message_content = db.Column(db.Text, nullable=True)
+    message_staff_id = db.Column(db.Text, nullable=True)
     attachment_url = db.Column(db.Text, nullable=True)
     attachment_id = db.Column(db.Integer, nullable=True)
 

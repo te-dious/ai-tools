@@ -2,7 +2,7 @@ import hashlib
 import json
 from constants import CW_CONVERSATION_PROMPT
 from flask import Flask, request, jsonify
-from utils import extract_text_from_image_util, get_db, get_retriever, get_qa_util, get_qa_chain, extract_text_from_image, InvalidInputError, send_sqs_messages
+from utils import extract_text_from_image_util, generate_random_string, get_db, get_retriever, get_qa_util, get_qa_chain, extract_text_from_image, InvalidInputError, send_sqs_messages
 from helpers.chroma_db_util import ChromaDBUtil
 from extensions import db
 from sqlalchemy import desc
@@ -190,6 +190,60 @@ def extract_chatwoot_conversation_info():
         op = qa_chain(conversation_text)
 
         result = json.loads(op["result"])
+        result["contact"] = contact
+
+        new_message = ExtractedData(
+            text=conversation_text, # Should we store the whole text?
+            text_hash=text_hash,
+            information=result,
+            identifier=identifier
+        )
+
+        db.session.add(new_message)
+        db.session.commit()
+        db.session.flush()
+
+
+        return jsonify({'message': result})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/analyse_chatwoot_conversation', methods=['POST'])
+def analyse_chatwoot_conversation():
+    try:
+        from helpers.chatwoot_util import ChatwootClient
+        from models import ExtractedData
+
+        data = request.json
+
+        conversation_id = data.get('conversation_id', '')
+        random_string = generate_random_string(10)
+        identifier = data.get("identifier", random_string)
+        prompt_template = data.get("prompt_template", CW_CONVERSATION_PROMPT)
+        chatwoot_client = ChatwootClient()
+        (conversation_text, docs), contact = chatwoot_client.get_chatwoot_conversation_text(conversation_id, True)
+        text = conversation_text + prompt_template
+        text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
+
+        extracted_data = ExtractedData.query.filter_by(text_hash=text_hash).order_by(desc(ExtractedData.id)).first()
+
+        if extracted_data:
+            return jsonify({'message': extracted_data.information})
+
+        collection_name = data.pop('collection_name', "default")
+        chroma_db = get_db(collection_name)
+        data = {
+            "model_name": "gpt-4",
+            "prompt_template": prompt_template,
+            "retriever":  get_retriever(chroma_db),
+        }
+        qa_util = get_qa_util(data)
+        qa_chain = get_qa_chain(qa_util)
+        op = qa_chain(conversation_text)
+
+        result = json.loads(op["result"])
+        result["identifier"] = identifier
         result["contact"] = contact
 
         new_message = ExtractedData(

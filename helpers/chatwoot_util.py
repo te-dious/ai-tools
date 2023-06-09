@@ -42,7 +42,7 @@ class ChatwootClient:
         }
         return self._make_get_request(url, headers)
 
-    def get_chatwoot_conversation_text(self, conversation_id: int):
+    def get_chatwoot_conversation_text(self, conversation_id: int, include_all=False):
         """Fetches and formats the conversation text from Chatwoot."""
         if not isinstance(conversation_id, int):
             raise InvalidInputError("conversation_id must be an integer.")
@@ -52,7 +52,7 @@ class ChatwootClient:
             "api_access_token": CHATWOOT_API_TOKEN,
         }
         messages, contact = self._fetch_messages(url, headers, conversation_id)
-        return self._format_messages(messages), contact
+        return self._format_messages(messages, include_all), contact
 
     def _fetch_messages(self, url: str, headers: Dict[str, str], conversation_id: int):
         # Use your own database credentials here
@@ -70,7 +70,6 @@ class ChatwootClient:
             payload.reverse()
             if not payload:
                 break
-
 
             if last_message_id == payload[-1]["id"]:
                 break
@@ -95,6 +94,7 @@ class ChatwootClient:
                     message_created_at=message['created_at'],
                     message_type=message['message_type'],
                     message_content=message['content'] if message.get("content") else "attachment",
+                    message_staff_id=message.get("sender", {}).get("id"),
                     attachment_id=attachment_id,
                     attachment_url=attachment_url,
                 )
@@ -115,12 +115,12 @@ class ChatwootClient:
     def get_formatted_message_from_message_list(self, messages):
         return self._format_messages(messages)
 
-    def _format_messages(self, messages: List) -> Tuple[str, List[Tuple[str, str]]]:
+    def _format_messages(self, messages: List, include_all=False) -> Tuple[str, List[Tuple[str, str]]]:
         msg_str = ""
         docs = []
         for message in sorted(messages, key=lambda i: i.message_id):
             message_type = message.message_type
-            if message_type not in (0, 1):
+            if message_type not in (0, 1) and not include_all:
                 continue
 
             formatted_string = self.convert_epoch_to_datetime_string(message.message_created_at)
@@ -137,8 +137,13 @@ class ChatwootClient:
 
         if message_type == 1:
             msg_str += "Staff: "
+            if message.message_staff_id:
+                msg_str += f"User Id: {message.message_staff_id}"
+
         elif message_type == 0:
             msg_str += "Agent: "
+        elif message_type == 2:
+            msg_str += "System Generated: "
 
         if message.message_content:
             msg_str += message.message_content
