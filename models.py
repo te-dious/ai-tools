@@ -21,4 +21,4 @@ class ExtractedData(db.Model):
     text_hash = db.Column(db.Text)
     information = db.Column(JSON)
     identifier = db.Column(db.Text, nullable=True)
-    # entity_type = db.Column(db.Text, nullable=True)
+    entity_type = db.Column(db.Text, nullable=True)
