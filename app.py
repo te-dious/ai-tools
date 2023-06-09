@@ -284,7 +284,7 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
 
     chatwoot_client = ChatwootClient()
     data = ExtractedData.query.filter_by(identifier=f"cw-conversation-id-{conversation_id}").order_by(desc(ExtractedData.id)).first()
-    prompt_template = data.get("prompt_template", CW_CONVERSATION_TO_SD_PROMPT)
+    prompt_template = CW_CONVERSATION_TO_SD_PROMPT
 
     result = {}
     if data:
@@ -314,7 +314,7 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
     result["documents"] = lis
     result = json.dumps(result)
 
-    collection_name = data.pop('collection_name', "default")
+    collection_name = "default"
     chroma_db = get_db(collection_name)
     data = {
         "model_name": "gpt-4",
