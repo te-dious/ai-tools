@@ -131,6 +131,7 @@ def get_chatwoot_conversation_structured_data(conversation_id):
             lis.append({
                 "url": attachment_url,
                 "result": extracted_data.information,
+                "ai_tools_identifier": f"cw-attachment-{attachment_id}",
             })
         else:
             lis.append({
