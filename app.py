@@ -94,6 +94,25 @@ def get_image_structured_data(identifier):
     return jsonify({'error': "identifier not found"}), 400
 
 
+@app.route('/update_image_structured_data/<identifier>', methods=['PATCH'])
+def update_image_structured_data(identifier):
+    data = request.json
+    if 'result' not in data:
+        return jsonify({'error': "Invalid request, missing 'result' in data"}), 400
+
+    extracted_data = ExtractedData.query.filter_by(identifier=identifier).order_by(ExtractedData.id.desc()).first()
+    if extracted_data:
+        extracted_data.information = data["result"]
+        try:
+            db.session.commit()
+            return jsonify({'message': extracted_data.information})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': "Database error: " + str(e)}), 500
+
+    return jsonify({'error': "identifier not found"}), 404
+
+
 @app.route('/get_chatwoot_conversation_structured_data/<conversation_id>', methods=['GET'])
 def get_chatwoot_conversation_structured_data(conversation_id):
     from helpers.chatwoot_util import ChatwootClient
