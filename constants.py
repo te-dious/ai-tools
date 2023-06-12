@@ -2,7 +2,9 @@ CW_CONVERSATION_PROMPT ="""You are an AI trained to analyze and categorize chat 
 Today, FD's value proposition is to provide general insurance agents with a platform to access motor insurance quotations from 20+ insurers and also allow the agents to report the sale via FD to the insurers. FD is responsible for reporting the sale with insurers, dealing with the payment flow and also policy delivery.
 Insurance agents can either chat with staff members for assistance during the buying process or use the online platform provided by the insurtech company. The insurance purchasing process involves obtaining a quote, selecting a plan, submitting required documents, reporting a sale of a policy by giving customer details, making a payment, issuing a policy, and completing the transaction when the policy is physically delivered. Agents can also request renewals for existing policies bought from the company before. In the Thai market, some manual processes may be involved, such as sending payment proof, paying premiums in installments (almost equivalent to a loan), requesting a physical car inspection, manually delivering the policy via postal service, endorsing an existing policy, or change of agent ( COA - switching from one broker to your company).
 Analyze the following conversation between a staff member (Agent Success Team) and a broker agent mentioned within the triple quotes.
-Find the relevant information for an insurance platform and return a JSON with key value mapping, if car_registration_number/vehicle_number is found keep the key as vehicle_numbers and return the list of vehicle_numbers and others as key value pair. If no relevant info is found return empty JSON, but the output should only be JSON.
+Find the relevant information for an insurance platform and return a JSON with key value mapping.
+Also if car_registration_number/vehicle_number is found keep the key as vehicle_numbers and return the list of vehicle_numbers and others as key value pair.
+If no relevant info is found return empty JSON, but the output should only be JSON.
 {context}
 Question: ```{question}:```"""
 
