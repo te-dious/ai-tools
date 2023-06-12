@@ -59,15 +59,14 @@ def extract_text_from_image_util(data):
     collection_name = data.pop('collection_name', "default")
     identifier = data.get('identifier', "")
     url = data.get('url')
-    vendor = data.get('vendor', "google_vision")
+    vendor = data.get('vendor', "appman")
     model_name = data.get("model_name", 'gpt-4')
     prompt_template = data.get("prompt_template", DOCUMENT_TYPE_INFO_PROMPT)
     message, _ = extract_text_from_image(url, vendor)
     text = message + prompt_template
     text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
-    identifier = identifier + vendor
 
-    extracted_data = ExtractedData.query.filter_by(text_hash=text_hash, identifier=identifier).order_by(desc(ExtractedData.id)).first()
+    extracted_data = ExtractedData.query.filter_by(text_hash=text_hash, identifier=identifier, vendor=vendor).order_by(desc(ExtractedData.id)).first()
     if extracted_data:
         return extracted_data.information
 
@@ -106,6 +105,7 @@ def extract_text_from_image_util(data):
                 information=result,
                 identifier=identifier,
                 entity_type=document_type,
+                vendor=vendor,
             )
 
 
@@ -126,6 +126,7 @@ def extract_text_from_image_util(data):
         information=result,
         identifier=identifier,
         entity_type=result.get("document_type"),
+        vendor=vendor,
     )
 
     db.session.add(new_message)
