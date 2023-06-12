@@ -138,7 +138,7 @@ class ChatwootClient:
         if message_type == 1:
             msg_str += "Staff: "
             if message.message_staff_id:
-                msg_str += f"User Id: {message.message_staff_id}"
+                msg_str += f"User Id: {message.message_staff_id} "
 
         elif message_type == 0:
             msg_str += "Agent: "

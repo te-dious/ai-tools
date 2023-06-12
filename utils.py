@@ -1,14 +1,16 @@
 
 import random
 import string
+import requests
 import boto3
 import hashlib
 import json
 import os
+from django.core.files.base import ContentFile
 from helpers.chroma_db_util import ChromaDBUtil
 from helpers.retrieval_qa_util import RetrievalQAUtil
-from helpers.text_extractor import GoogleVision
-from constants import DOCUMENT_TYPE_INFO_PROMPT
+from helpers.text_extractor import AppmanOcrUtils, GoogleVision
+from constants import DOCUMENT_TYPE_INFO_PROMPT, DOCUMENT_IDENTIFICATION_PROMPT
 from extensions import db
 from sqlalchemy import desc
 from dotenv import load_dotenv
@@ -62,11 +64,11 @@ def extract_text_from_image_util(data):
     message, _ = extract_text_from_image(url, vendor)
     text = message + prompt_template
     text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
+    identifier = identifier + vendor
 
     extracted_data = ExtractedData.query.filter_by(text_hash=text_hash, identifier=identifier).order_by(desc(ExtractedData.id)).first()
     if extracted_data:
         return extracted_data.information
-
 
     data = {
         "model_name": model_name,
@@ -78,6 +80,41 @@ def extract_text_from_image_util(data):
 
     qa_util = get_qa_util(data)
     qa_chain = get_qa_chain(qa_util)
+
+    if vendor == "appman":
+        data["prompt_template"] = DOCUMENT_IDENTIFICATION_PROMPT
+        qa_appman_util = get_qa_util(data)
+        qa_appman_chain = get_qa_chain(qa_appman_util)
+        op = qa_appman_chain(message)
+        document_type =op["result"]
+        if document_type.lower() == "national_id":
+            response = requests.get(url)
+            file = ContentFile(response.content)
+            file.name = "national_id_document"
+            result = AppmanOcrUtils.scan_thai_identification(file).get("result")
+        elif document_type.lower() == "car_registration":
+            response = requests.get(url)
+            file = ContentFile(response.content)
+            file.name = "car_registration_document"
+            result = AppmanOcrUtils.scan_car_registration(file).get("result")
+
+        if result:
+            new_message = ExtractedData(
+                text=text,
+                text_hash=text_hash,
+                information=result,
+                identifier=identifier,
+                entity_type=document_type,
+            )
+
+
+    if len(message) < 50:
+        return {
+            "status": "unknown"
+        }
+
+
+
     op = qa_chain(message)
 
     result = json.loads(op["result"])

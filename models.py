@@ -23,3 +23,4 @@ class ExtractedData(db.Model):
     information = db.Column(JSON)
     identifier = db.Column(db.Text, nullable=True)
     entity_type = db.Column(db.Text, nullable=True)
+    vendor_name = db.Column(db.Text, nullable=True)

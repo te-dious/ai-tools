@@ -11,12 +11,12 @@ Today, FD's value proposition is to provide general insurance agents with a plat
 Insurance agents can either chat with staff members for assistance during the buying process or use the online platform provided by the insurtech company. The insurance purchasing process involves obtaining a quote, selecting a plan, submitting required documents, reporting a sale of a policy by giving customer details, making a payment, issuing a policy, and completing the transaction when the policy is physically delivered. Agents can also request renewals for existing policies bought from the company before. In the Thai market, some manual processes may be involved, such as sending payment proof, paying premiums in installments (almost equivalent to a loan), requesting a physical car inspection, manually delivering the policy via postal service, endorsing an existing policy, or change of agent ( COA - switching from one broker to your company).
 Analyze the following structured data mentioned within the triple quotes created from a conversation between a staff member (Agent Success Team) and a broker agent.
 Fill all the relevant information for following keys in the following json format do not assume anything.
-list of keys to be present in output:'compulsory_start_date', 'make_model', 'client_title', 'sum_insured', 'insurance_class', 'vehicle_number', 'chassis_number', 'model_description', 'id', 'name', 'client_phone', 'client_last_name', 'policy_start_date', 'client_first_name', 'cover_note_code', 'year', 'make', 'current_insurer', 'cc', 'quotation', 'needs_compulsory_insurance'
+list of keys to be present in output: 'owner_salutation', 'owner_first_name', 'owner_last_name', 'vehicle_number', 'chassis_number', 'engine_number', 'registration_province', 'national_id', 'phone_number, 'policy_start_date', 'province', 'district', 'sub_district', 'zip_code', 'model_name', 'make_name', 'cc', 'registration_year', 'sub_model' and 'sum_insurered'
 {context}
 Conversation Data: ```{question}:```"""
 
 
-DOCUMENT_TYPE_PROMPT = """You are an AI trained to analyze and categorize documents for an insurtech broker company in Thailand.
+DOCUMENT_IDENTIFICATION_PROMPT = """You are an AI trained to analyze and categorize documents for an insurtech broker company in Thailand.
 You need to also identify the document type. You are provided the extracted text from the document you just need to return the document_type of the extracted text.
 The document can be out of following: car_registration, payment_proof, insurance_policy, credit_card_form, national_id, policy_quotation, cover_note, coa_application, car_inspection_form, car_inspection_image, loan_contract.
 If you are not sure about what image is, do not assume anything, strictly return unknown.
@@ -24,11 +24,13 @@ Just return the document_type string.
 {context}
 Question: {question}:"""
 
+
 DOCUMENT_TYPE_INFO_PROMPT = """You are an AI trained to analyze and categorize document for an insurtech broker company in Thailand.
-You need to find relevant information for an insurance platform and return a JSON with key value mapping. You are provided the extracted text from the document.
+You are provided the extracted text from the document.
 You need to first find the document type, the document can be out of following: car_registration, payment_proof, insurance_policy, credit_card_form, national_id, policy_quotation, cover_note, coa_application, car_inspection_form, car_inspection_image, loan_contract or others.
+Later you need to find relevant information for an insurance platform and return a JSON with key value mapping.
 Get all the relevant key value pairs from the document and return a structured JSON object with relevant information.
-Payment_proof should have transaction_id, transaction_time (YYYY-MM-DDTHH:MM:SS; convert Thai to Georgian year), amount (Decimal), sender_account_number, receiver_account_number.
+Payment_proof should have transaction_id, transaction_time (YYYY-MM-DDTHH:MM:SS; convert Thai to Georgian year, for example if thai year is 66 georgian year will be 2023, if thai year is 2565 georgian year will be 2022), amount (Decimal), sender_account_number, receiver_account_number.
 Car registration document may have vehicle_register_date, vehicle_license_number, vehicle_license_province, vehicle_type, vehicle_short_type, vehicle_body_type, vehicle_brand, vehicle_model, vehicle_model_year, vehicle_color, vehicle_chassis_number, vehicle_engine_brand, vehicle_engine_number, vehicle_car_weight, vehicle_seat_number, vehicle_fuel_type, vehicle_gas_number, own_date, owner_1_org_name, owner_1_title_th, owner_1_name, owner_1_first_name_th, owner_1_last_name_th, owner_1_thai_id, owner_1_dob, owner_1_nationality, owner_1_address, owner_1_sub_district, owner_1_phone, owner_1_province
 National Id can have id_number, title_th, first_name_th, last_name_th, full_name_th, title_en, title_first_name_en, first_name_en, middle_last_name_en, date_of_birth_th, date_of_birth_en, address_no, sub_district, district, province, address_th, date_of_issue_en
 Insurance policy should have policy_number, policy_start_date, policy_end_date and insurer info.
