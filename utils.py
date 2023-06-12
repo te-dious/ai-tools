@@ -1,4 +1,5 @@
 
+import io
 import random
 import string
 import requests
@@ -6,7 +7,7 @@ import boto3
 import hashlib
 import json
 import os
-from django.core.files.base import ContentFile
+from werkzeug.datastructures import FileStorage
 from helpers.chroma_db_util import ChromaDBUtil
 from helpers.retrieval_qa_util import RetrievalQAUtil
 from helpers.text_extractor import AppmanOcrUtils, GoogleVision
@@ -89,13 +90,13 @@ def extract_text_from_image_util(data):
         document_type =op["result"]
         if document_type.lower() == "national_id":
             response = requests.get(url)
-            file = ContentFile(response.content)
-            file.name = "national_id_document"
+            file_obj = io.BytesIO(response.content)
+            file = FileStorage(stream=file_obj, filename="national_id_document", content_type='text/plain')
             result = AppmanOcrUtils.scan_thai_identification(file).get("result")
         elif document_type.lower() == "car_registration":
             response = requests.get(url)
-            file = ContentFile(response.content)
-            file.name = "car_registration_document"
+            file_obj = io.BytesIO(response.content)
+            file = FileStorage(stream=file_obj, filename="car_registration_document", content_type='text/plain')
             result = AppmanOcrUtils.scan_car_registration(file).get("result")
 
         if result:
