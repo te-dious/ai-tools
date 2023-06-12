@@ -87,6 +87,7 @@ def extract_text_from_image_util(data):
         qa_appman_chain = get_qa_chain(qa_appman_util)
         op = qa_appman_chain(message)
         document_type =op["result"]
+        result = None
         if document_type.lower() == "national_id":
             response = requests.get(url)
             file_obj = io.BytesIO(response.content)
