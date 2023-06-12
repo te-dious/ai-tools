@@ -47,7 +47,7 @@ def extract_text_from_image(url, vendor):
     if not url:
         raise InvalidInputError('Please provide image url')
 
-    if vendor == "google_vision":
+    if vendor in ("google_vision" , "appman"):
         vision = GoogleVision()
         return vision.extract_text_from_url(url)
     else:
@@ -66,7 +66,7 @@ def extract_text_from_image_util(data):
     text = message + prompt_template
     text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
 
-    extracted_data = ExtractedData.query.filter_by(text_hash=text_hash, identifier=identifier, vendor=vendor).order_by(desc(ExtractedData.id)).first()
+    extracted_data = ExtractedData.query.filter_by(text_hash=text_hash, identifier=identifier, vendor_name=vendor).order_by(desc(ExtractedData.id)).first()
     if extracted_data:
         return extracted_data.information
 
@@ -91,23 +91,27 @@ def extract_text_from_image_util(data):
             response = requests.get(url)
             file_obj = io.BytesIO(response.content)
             file = FileStorage(stream=file_obj, filename="national_id_document", content_type='text/plain')
-            result = AppmanOcrUtils.scan_thai_identification(file).get("result")
+            result = AppmanOcrUtils().scan_thai_identification(file).get("result")
         elif document_type.lower() == "car_registration":
             response = requests.get(url)
             file_obj = io.BytesIO(response.content)
             file = FileStorage(stream=file_obj, filename="car_registration_document", content_type='text/plain')
-            result = AppmanOcrUtils.scan_car_registration(file).get("result")
+            result = AppmanOcrUtils().scan_car_registration(file).get("result")
 
         if result:
+            result.pop("confidence", None)
             new_message = ExtractedData(
                 text=text,
                 text_hash=text_hash,
                 information=result,
                 identifier=identifier,
                 entity_type=document_type,
-                vendor=vendor,
+                vendor_name=vendor,
             )
-
+            db.session.add(new_message)
+            db.session.commit()
+            db.session.flush()
+            return result
 
     if len(message) < 50:
         return {
@@ -126,7 +130,7 @@ def extract_text_from_image_util(data):
         information=result,
         identifier=identifier,
         entity_type=result.get("document_type"),
-        vendor=vendor,
+        vendor_name=vendor,
     )
 
     db.session.add(new_message)
