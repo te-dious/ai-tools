@@ -100,6 +100,7 @@ def extract_text_from_image_util(data):
 
         if result:
             result.pop("confidence", None)
+            result["document_type"] = document_type
             new_message = ExtractedData(
                 text=text,
                 text_hash=text_hash,
