@@ -66,6 +66,11 @@ def extract_text_from_image_util(data):
     text = message + prompt_template
     text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
 
+    if len(message) < 50:
+        return {
+            "status": "unknown"
+        }
+
     extracted_data = ExtractedData.query.filter_by(text_hash=text_hash, identifier=identifier, vendor_name=vendor).order_by(desc(ExtractedData.id)).first()
     if extracted_data:
         return extracted_data.information
@@ -117,11 +122,6 @@ def extract_text_from_image_util(data):
             db.session.commit()
             db.session.flush()
             return result
-
-    if len(message) < 50:
-        return {
-            "status": "unknown"
-        }
 
     data["prompt_template"] = prompt_template
     qa_util = get_qa_util(data)
