@@ -136,7 +136,7 @@ def extract_text_from_image_util(data):
         information=result,
         identifier=identifier,
         entity_type=document_type,
-        vendor_name=vendor,
+        vendor_name="openai",
     )
 
     db.session.add(new_message)

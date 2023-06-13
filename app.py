@@ -331,6 +331,7 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
             lis.append({
                 "url": attachment_url,
                 "result": extracted_data.information,
+                "vendor": extracted_data.vendor,
             })
 
     doc_sort_order = {
@@ -350,7 +351,8 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
         if not r.get("document_type"):
             continue
         document_type = r["document_type"]
-        if document_type == "car_registration":
+        vendor = r["vendor"]
+        if document_type == "car_registration" and vendor == "appman":
             res["client_title_name"] = r["owner_1_title_th"]
             res["client_first_name"] = r["owner_1_first_name_th"]
             res["client_last_name"] = r["owner_1_last_name_th"]
@@ -375,7 +377,7 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
             res["vehicle_license_province"] = r["vehicle_license_province"]
             res["chassis_number"] = r["vehicle_chassis_number"]
             res["engine_number"] = r["vehicle_engine_number"]
-        if document_type == "national_id":
+        if document_type == "national_id" and vendor == "appman":
             res["client_title_name"] = r["title_th"] or res["client_title_name"]
             res["client_first_name"] = r["first_name_th"] or res["client_first_name"]
             res["client_last_name"] = r["last_name_th"] or res["client_last_name"]
@@ -383,19 +385,19 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
             res["client_province"] = r["province"] or res["client_province"]
             res["client_district"] = r["district"] or res["client_district"]
             res["client_sub_district"] = r["sub_district"] or res["client_sub_district"]
-        if document_type == "insurance_policy":
+        if document_type == "insurance_policy" and vendor == "appman":
             res["old_policy_start_date"] =  r["policy_end_date"]
             res["old_policy_number"] =  r["policy_number"]
 
     conversation_summary = result["conversation_summary"]
-    res["client_phone_number"] = conversation_summary.get("contact_number")
-    res["client_first_name"] = conversation_summary.get("client_first_name")
-    res["client_last_name"] = conversation_summary.get("client_last_name")
-    res["client_province"] = conversation_summary.get("province")
-    res["client_district"] = conversation_summary.get("district")
-    res["client_sub_district"] = conversation_summary.get("sub_district")
-    res["client_zip_code"] = conversation_summary.get("zip_code")
-    res["client_national_id"] = conversation_summary.get("national_id_number")
+    res["client_phone_number"] = conversation_summary.get("contact_number") or res.get("client_phone_number")
+    res["client_first_name"] = conversation_summary.get("client_first_name") or res.get("client_first_name")
+    res["client_last_name"] = conversation_summary.get("client_last_name") or res.get("client_last_name")
+    res["client_province"] = conversation_summary.get("province") or res.get("client_province")
+    res["client_district"] = conversation_summary.get("district") or res.get("client_district")
+    res["client_sub_district"] = conversation_summary.get("sub_district") or res.get("client_sub_district")
+    res["client_zip_code"] = conversation_summary.get("zip_code") or res.get("client_zip_code")
+    res["client_national_id"] = conversation_summary.get("national_id_number") or res.get("client_national_id")
 
     return jsonify({'message': res})
 
