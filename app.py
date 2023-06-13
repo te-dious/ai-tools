@@ -331,7 +331,7 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
             lis.append({
                 "url": attachment_url,
                 "result": extracted_data.information,
-                "vendor": extracted_data.vendor,
+                "vendor": extracted_data.vendor_name,
             })
 
     doc_sort_order = {
@@ -351,7 +351,7 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
         if not r.get("document_type"):
             continue
         document_type = r["document_type"]
-        vendor = r["vendor"]
+        vendor = l["vendor"]
         if document_type == "car_registration" and vendor == "appman":
             res["client_title_name"] = r["owner_1_title_th"]
             res["client_first_name"] = r["owner_1_first_name_th"]
