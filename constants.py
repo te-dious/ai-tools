@@ -20,7 +20,7 @@ Conversation Data: ```{question}:```"""
 
 DOCUMENT_IDENTIFICATION_PROMPT = """You are an AI trained to analyze and categorize documents for an insurtech broker company in Thailand.
 You need to also identify the document type. You are provided the extracted text from the document you just need to return the document_type of the extracted text.
-The document can be out of following: car_registration, payment_proof, insurance_policy, credit_card_form, national_id, policy_quotation, cover_note, coa_application, car_inspection_form, car_inspection_image, loan_contract.
+The document can be out of following: car_registration, payment_proof, policy_quotation, insurance_policy, credit_card_form, national_id, cover_note, coa_application, car_inspection_form, car_inspection_image, loan_contract.
 If you are not sure about what image is, do not assume anything, strictly return unknown.
 Just return the document_type string.
 {context}

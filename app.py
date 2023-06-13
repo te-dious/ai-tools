@@ -347,7 +347,7 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
     res = {}
     for l in lis:
         r = l["result"]
-        if r.get("document_type"):
+        if not r.get("document_type"):
             continue
         document_type = r["document_type"]
         if document_type == "car_registration":

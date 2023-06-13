@@ -72,7 +72,6 @@ def extract_text_from_image_util(data):
 
     data = {
         "model_name": model_name,
-        "prompt_template": prompt_template,
     }
 
     chroma_db = get_db(collection_name)
@@ -99,12 +98,11 @@ def extract_text_from_image_util(data):
             file = FileStorage(stream=file_obj, filename="car_registration_document", content_type='text/plain')
             result = AppmanOcrUtils().scan_car_registration(file).get("result")
         elif document_type.lower() == "payment_proof":
-            data["model_name"] = "gpt-3.5-turbo"
             data["prompt_template"] = DOCUMENT_PP_IDENTIFICATION_PROMPT
             qa_appman_util = get_qa_util(data)
             qa_appman_chain = get_qa_chain(qa_appman_util)
             op = qa_appman_chain(message)
-            result = op["result"]
+            result = json.loads(op["result"])
 
         if result:
             result.pop("confidence", None)
@@ -126,6 +124,8 @@ def extract_text_from_image_util(data):
         return {
             "status": "unknown"
         }
+
+    data["prompt_template"] = prompt_template
 
     message = f"Document type {document_type} \n{message}"
 
