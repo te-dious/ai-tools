@@ -307,6 +307,8 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
     prompt_template = CW_CONVERSATION_TO_SD_PROMPT
 
     result = {}
+    result["conversation_summary"] = {}
+
     if data:
         result["conversation_summary"] = data.information
     result["conversation_summary"].pop("user", None)
@@ -331,22 +333,71 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
                 "result": extracted_data.information,
             })
 
-    result["documents"] = lis
-    result = json.dumps(result)
-
-    collection_name = "default"
-    chroma_db = get_db(collection_name)
-    data = {
-        "model_name": "gpt-4",
-        "prompt_template": prompt_template,
-        "retriever":  get_retriever(chroma_db),
+    doc_sort_order = {
+        'car_registration': 1,
+        'national_id': 2,
+        'insurance_policy': 3,
     }
-    qa_util = get_qa_util(data)
-    qa_chain = get_qa_chain(qa_util)
-    op = qa_chain(result)
-    result = json.loads(op["result"])
 
-    return jsonify({'message': result})
+    # sort the documents
+    lis = sorted(
+        lis,
+        key=lambda doc: doc_sort_order.get(doc.get('document_type', ''), float('inf'))  # Default to 'inf' for unknown document types
+    )
+    res = {}
+    for l in lis:
+        r = l["result"]
+        if r.get("document_type"):
+            continue
+        document_type = r["document_type"]
+        if document_type == "car_registration":
+            res["client_title_name"] = r["owner_1_title_th"]
+            res["client_first_name"] = r["owner_1_first_name_th"]
+            res["client_last_name"] = r["owner_1_last_name_th"]
+            res["client_national_id"] = r["owner_1_thai_id"]
+            res["client_address"] = r["owner_1_address"]
+            res["client_province"] = r["owner_1_province"]
+            res["client_district"] = r["owner_1_district"]
+            res["client_sub_district"] = r["owner_1_sub_district"]
+            res["client_dob"] = r["owner_1_dob"]
+            if r["owner_2_first_name_th"] and not r["owner_1_title_th"]:
+                res["client_title_name"] = r["owner_2_title_th"]
+                res["client_first_name"] = r["owner_2_first_name_th"]
+                res["client_last_name"] = r["owner_2_last_name_th"]
+                res["client_national_id"] = r["owner_2_thai_id"]
+                res["client_address"] = r["owner_2_address"]
+                res["client_province"] = r["owner_1_province"]
+                res["client_district"] = r["owner_1_district"]
+                res["client_sub_district"] = r["owner_1_sub_district"]
+                res["client_dob"] = r["owner_2_dob"]
+
+            res["vehicle_number"] = r["vehicle_license_number"].strip().replace(" ", "")
+            res["vehicle_license_province"] = r["vehicle_license_province"]
+            res["chassis_number"] = r["vehicle_chassis_number"]
+            res["engine_number"] = r["vehicle_engine_number"]
+        if document_type == "national_id":
+            res["client_title_name"] = r["title_th"] or res["client_title_name"]
+            res["client_first_name"] = r["first_name_th"] or res["client_first_name"]
+            res["client_last_name"] = r["last_name_th"] or res["client_last_name"]
+            res["client_national_id"] = r["id_number"].strip().replace(" ", "") or res["client_national_id"]
+            res["client_province"] = r["province"] or res["client_province"]
+            res["client_district"] = r["district"] or res["client_district"]
+            res["client_sub_district"] = r["sub_district"] or res["client_sub_district"]
+        if document_type == "insurance_policy":
+            res["old_policy_start_date"] =  r["policy_end_date"]
+            res["old_policy_number"] =  r["policy_number"]
+
+    conversation_summary = result["conversation_summary"]
+    res["client_phone_number"] = conversation_summary.get("contact_number")
+    res["client_first_name"] = conversation_summary.get("client_first_name")
+    res["client_last_name"] = conversation_summary.get("client_last_name")
+    res["client_province"] = conversation_summary.get("province")
+    res["client_district"] = conversation_summary.get("district")
+    res["client_sub_district"] = conversation_summary.get("sub_district")
+    res["client_zip_code"] = conversation_summary.get("zip_code")
+    res["client_national_id"] = conversation_summary.get("national_id_number")
+
+    return jsonify({'message': res})
 
 
 @app.route('/extract_text_from_image_util_view', methods=['POST'])

@@ -11,7 +11,7 @@ from werkzeug.datastructures import FileStorage
 from helpers.chroma_db_util import ChromaDBUtil
 from helpers.retrieval_qa_util import RetrievalQAUtil
 from helpers.text_extractor import AppmanOcrUtils, GoogleVision
-from constants import DOCUMENT_TYPE_INFO_PROMPT, DOCUMENT_IDENTIFICATION_PROMPT
+from constants import DOCUMENT_TYPE_INFO_PROMPT, DOCUMENT_IDENTIFICATION_PROMPT, DOCUMENT_PP_IDENTIFICATION_PROMPT
 from extensions import db
 from sqlalchemy import desc
 from dotenv import load_dotenv
@@ -86,7 +86,7 @@ def extract_text_from_image_util(data):
         qa_appman_util = get_qa_util(data)
         qa_appman_chain = get_qa_chain(qa_appman_util)
         op = qa_appman_chain(message)
-        document_type =op["result"]
+        document_type = op["result"]
         result = None
         if document_type.lower() == "national_id":
             response = requests.get(url)
@@ -98,6 +98,13 @@ def extract_text_from_image_util(data):
             file_obj = io.BytesIO(response.content)
             file = FileStorage(stream=file_obj, filename="car_registration_document", content_type='text/plain')
             result = AppmanOcrUtils().scan_car_registration(file).get("result")
+        elif document_type.lower() == "payment_proof":
+            data["model_name"] = "gpt-3.5-turbo"
+            data["prompt_template"] = DOCUMENT_PP_IDENTIFICATION_PROMPT
+            qa_appman_util = get_qa_util(data)
+            qa_appman_chain = get_qa_chain(qa_appman_util)
+            op = qa_appman_chain(message)
+            result = op["result"]
 
         if result:
             result.pop("confidence", None)
@@ -120,7 +127,7 @@ def extract_text_from_image_util(data):
             "status": "unknown"
         }
 
-
+    message = f"Document type {document_type} \n{message}"
 
     op = qa_chain(message)
 
