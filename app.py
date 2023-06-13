@@ -360,7 +360,7 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
             res["client_district"] = r["owner_1_district"]
             res["client_sub_district"] = r["owner_1_sub_district"]
             res["client_dob"] = r["owner_1_dob"]
-            if r["owner_2_first_name_th"] and not r["owner_1_title_th"]:
+            if r["owner_2_first_name_th"] and not r["owner_1_first_name_th"]:
                 res["client_title_name"] = r["owner_2_title_th"]
                 res["client_first_name"] = r["owner_2_first_name_th"]
                 res["client_last_name"] = r["owner_2_last_name_th"]

@@ -76,9 +76,7 @@ def extract_text_from_image_util(data):
 
     chroma_db = get_db(collection_name)
     data["retriever"] = get_retriever(chroma_db)
-
-    qa_util = get_qa_util(data)
-    qa_chain = get_qa_chain(qa_util)
+    document_type = "unidentified"
 
     if vendor == "appman":
         data["prompt_template"] = DOCUMENT_IDENTIFICATION_PROMPT
@@ -126,19 +124,18 @@ def extract_text_from_image_util(data):
         }
 
     data["prompt_template"] = prompt_template
-
-    message = f"Document type {document_type} \n{message}"
-
+    qa_util = get_qa_util(data)
+    qa_chain = get_qa_chain(qa_util)
     op = qa_chain(message)
-
     result = json.loads(op["result"])
+    result["document_type"] = document_type
 
     new_message = ExtractedData(
         text=text,
         text_hash=text_hash,
         information=result,
         identifier=identifier,
-        entity_type=result.get("document_type"),
+        entity_type=document_type,
         vendor_name=vendor,
     )
 

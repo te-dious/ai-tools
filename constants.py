@@ -38,9 +38,7 @@ DOCUMENT_TYPE_INFO_PROMPT = """You are an AI trained to analyze and categorize d
 You are provided the extracted text from the document with the given document_type.
 You need to find relevant information for an insurance platform and return a JSON with key value mapping.
 Get all the relevant key value pairs from the document and return a structured JSON object with relevant information.
-Payment_proof should have transaction_id, transaction_time (YYYY-MM-DDTHH:MM:SS; convert Thai to Georgian year, for example if thai year is 66 georgian year will be 2023, if thai year is 2565 georgian year will be 2022), amount (Decimal), sender_account_number, receiver_account_number.
-Insurance policy should have policy_number, policy_start_date, policy_end_date and insurer info.
-Do not assume anything, strictly return unknown and no need to find info of unknown document_type.
-Response should only be JSON which always has document_type, weather idenitified or unknown.
+Do not assume anything, strictly return empty dictionary and no need to find info of unknown document_type.
+Response should strictly only be JSON.
 {context}
 Question: {question}:"""
