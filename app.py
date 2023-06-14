@@ -12,7 +12,7 @@ load_dotenv()
 
 import os
 
-WHITELISTED_USERS = os.environ.get('WHITELISTED_USERS')
+WHITELISTED_USERS=[91, 23, 6, 18, 42, 2]
 
 def create_app():
     app = Flask(__name__)
@@ -119,9 +119,8 @@ def update_image_structured_data(identifier):
 def get_chatwoot_conversation_structured_data(conversation_id):
     from helpers.chatwoot_util import ChatwootClient
     from models import ExtractedData, ChatwootMessage
-
     cw_user_id = request.args.get('cw_user_id')
-    if cw_user_id not in WHITELISTED_USERS:
+    if cw_user_id and cw_user_id not in WHITELISTED_USERS:
         return jsonify({'detail': "Not Allowed to Access"}), 401
     chatwoot_client = ChatwootClient()
     data = ExtractedData.query.filter_by(identifier=f"cw-conversation-id-{conversation_id}").order_by(desc(ExtractedData.id)).first()
@@ -176,7 +175,7 @@ def extract_chatwoot_conversation_info():
 
         data = request.json
         cw_user_id = data.get("cw_user_id")
-        if cw_user_id not in WHITELISTED_USERS:
+        if cw_user_id and cw_user_id not in WHITELISTED_USERS:
             return jsonify({'detail': "Not allowed to access."}), 401
 
         conversation_id = data.get('conversation_id', '')
