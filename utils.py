@@ -168,7 +168,7 @@ def extract_text_from_image_util(data):
             return result
         else:
             result = {
-                "document_type": "unidentified",
+                "document_type": document_type or "unidentified",
             }
             new_message = ExtractedData(
                 text=text,
@@ -177,6 +177,8 @@ def extract_text_from_image_util(data):
                 identifier=identifier,
                 entity_type=document_type,
                 vendor_name=vendor,
+                llm_cost=llm_cost,
+                llm_tokens_used=llm_tokens_used
             )
             db.session.add(new_message)
             db.session.commit()
