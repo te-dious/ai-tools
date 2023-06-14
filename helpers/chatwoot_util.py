@@ -42,7 +42,7 @@ class ChatwootClient:
         }
         return self._make_get_request(url, headers)
 
-    def get_chatwoot_conversation_text(self, conversation_id: int, include_all=False):
+    def get_chatwoot_conversation_text(self, conversation_id: int, include_all=False, exclude_metadata=False):
         """Fetches and formats the conversation text from Chatwoot."""
         if not isinstance(conversation_id, int):
             raise InvalidInputError("conversation_id must be an integer.")
@@ -52,7 +52,7 @@ class ChatwootClient:
             "api_access_token": CHATWOOT_API_TOKEN,
         }
         messages, contact = self._fetch_messages(url, headers, conversation_id)
-        return self._format_messages(messages, include_all), contact
+        return self._format_messages(messages, include_all, exclude_metadata), contact
 
     def _fetch_messages(self, url: str, headers: Dict[str, str], conversation_id: int):
         # Use your own database credentials here
@@ -115,7 +115,7 @@ class ChatwootClient:
     def get_formatted_message_from_message_list(self, messages):
         return self._format_messages(messages)
 
-    def _format_messages(self, messages: List, include_all=False) -> Tuple[str, List[Tuple[str, str]]]:
+    def _format_messages(self, messages: List, include_all=False, exclude_metadata=False) -> Tuple[str, List[Tuple[str, str]]]:
         msg_str = ""
         docs = []
         for message in sorted(messages, key=lambda i: i.message_id):
@@ -124,7 +124,7 @@ class ChatwootClient:
                 continue
 
             formatted_string = self.convert_epoch_to_datetime_string(message.message_created_at)
-            msg_st, doc = self._format_message_string(message, formatted_string, message_type)
+            msg_st, doc = self._format_message_string(message, formatted_string, message_type, exclude_metadata)
             msg_str += msg_st
             if doc:
                 docs.append(doc)
@@ -132,17 +132,19 @@ class ChatwootClient:
         return msg_str, docs
 
     @staticmethod
-    def _format_message_string(message, formatted_string: str, message_type: int):
-        msg_str = f"{formatted_string}: "
+    def _format_message_string(message, formatted_string: str, message_type: int, exclude_metadata: bool):
+        msg_str = ""
+        if not exclude_metadata:
+            msg_str = f"{formatted_string}: "
 
         if message_type == 1:
             msg_str += "Staff: "
-            if message.message_staff_id:
+            if message.message_staff_id and not exclude_metadata:
                 msg_str += f"User Id: {message.message_staff_id} "
 
         elif message_type == 0:
             msg_str += "Agent: "
-        elif message_type == 2:
+        elif message_type == 2 and not exclude_metadata:
             msg_str += "System Generated: "
 
         if message.message_content:
@@ -150,7 +152,7 @@ class ChatwootClient:
         doc = None
         if message.attachment_id:
             doc = (message.attachment_url, message.attachment_id)
-            msg_str += "An image is attached"
+            msg_str += "IMAGE"
 
         msg_str += "\n"
         return msg_str, doc

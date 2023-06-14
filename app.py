@@ -175,7 +175,7 @@ def extract_chatwoot_conversation_info():
         identifier = data.get("identifier", f"cw-conversation-id-{conversation_id}")
         prompt_template = data.get("prompt_template", CW_CONVERSATION_PROMPT)
         chatwoot_client = ChatwootClient()
-        (conversation_text, docs), contact = chatwoot_client.get_chatwoot_conversation_text(conversation_id)
+        (conversation_text, docs), contact = chatwoot_client.get_chatwoot_conversation_text(conversation_id, exclude_metadata=True)
         text = conversation_text + prompt_template
         text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
 
@@ -304,7 +304,6 @@ def get_chatwoot_conversation_structured_data_with_documents(conversation_id):
 
     chatwoot_client = ChatwootClient()
     data = ExtractedData.query.filter_by(identifier=f"cw-conversation-id-{conversation_id}").order_by(desc(ExtractedData.id)).first()
-    prompt_template = CW_CONVERSATION_TO_SD_PROMPT
 
     result = {}
     result["conversation_summary"] = {}
