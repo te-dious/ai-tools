@@ -28,7 +28,7 @@ Question: {question}:"""
 
 DOCUMENT_PP_IDENTIFICATION_PROMPT = """You are an AI trained to analyze and categorize document for an insurtech broker company in Thailand.
 You are provided the extracted text from the payment proof document.
-Get all the relevant key value pairs from the document and return a structured JSON object with relevant information.
+Get all the relevant key value pairs from the document and return a structured flat JSON object with relevant information.
 Payment_proof should have transaction_id, transaction_time (YYYY-MM-DDTHH:MM:SS; convert Thai to Georgian year, for example if thai year is 66 georgian year will be 2023, if thai year is 2565 georgian year will be 2022), amount (Decimal), sender_account_number, receiver_account_number.
 Do not assume anything, strictly return unknown.
 {context}
@@ -36,7 +36,7 @@ Question: {question}:"""
 
 DOCUMENT_PQ_IDENTIFICATION_PROMPT = """You are an AI trained to analyze and categorize document for an insurtech broker company in Thailand.
 You are provided the extracted text from the policy quotation document.
-Get all the relevant key value pairs from the document and return a structured JSON object with relevant information.
+Get all the relevant key value pairs from the document and return a structured flat JSON object with relevant information.
 Policy_quotation should have quotation_id, vehicle_number, vehicle_make, vehicle_model, vehicle_cc.
 Do not assume anything, strictly return unknown.
 {context}
@@ -44,7 +44,7 @@ Question: {question}:"""
 
 DOCUMENT_IP_IDENTIFICATION_PROMPT = """You are an AI trained to analyze and categorize document for an insurtech broker company in Thailand.
 You are provided the extracted text from the payment proof document.
-Get all the relevant key value pairs from the document and return a structured JSON object with relevant information.
+Get all the relevant key value pairs from the document and return a structured flat JSON object with relevant information.
 Insurance_policy should have policy_number, policy_start_date, policy_end_date, vehicle_number, vehicle_make, vehicle_model, vehicle_cc.
 Do not assume anything, strictly return unknown.
 {context}
