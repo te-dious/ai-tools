@@ -103,11 +103,12 @@ def extract_text_from_image_util(data):
         data["prompt_template"] = DOCUMENT_IDENTIFICATION_PROMPT
         qa_appman_util = get_qa_util(data)
         qa_appman_chain = get_qa_chain(qa_appman_util)
-        op = qa_appman_chain(message)
+        with get_openai_callback() as cb:
+            op = qa_appman_chain(message)
         document_type = op["result"]
         result = None
-        llm_cost = 0
-        llm_tokens_used = 0
+        llm_cost = cb.total_cost
+        llm_tokens_used = cb.total_tokens
         if document_type.lower() == "national_id":
             response = requests.get(url)
             file_obj = io.BytesIO(response.content)
@@ -124,8 +125,8 @@ def extract_text_from_image_util(data):
             qa_appman_chain = get_qa_chain(qa_appman_util)
             with get_openai_callback() as cb:
                 op = qa_appman_chain(message)
-                llm_cost = cb.total_cost
-                llm_tokens_used = cb.total_tokens
+                llm_cost += cb.total_cost
+                llm_tokens_used += cb.total_tokens
             result = json.loads(op["result"])
         elif document_type.lower() == "policy_quotation":
             data["prompt_template"] = DOCUMENT_PQ_IDENTIFICATION_PROMPT
@@ -133,8 +134,8 @@ def extract_text_from_image_util(data):
             qa_appman_chain = get_qa_chain(qa_appman_util)
             with get_openai_callback() as cb:
                 op = qa_appman_chain(message)
-                llm_cost = cb.total_cost
-                llm_tokens_used = cb.total_tokens
+                llm_cost += cb.total_cost
+                llm_tokens_used += cb.total_tokens
 
             result = json.loads(op["result"])
         elif document_type.lower() == "insurance_policy":
@@ -143,8 +144,8 @@ def extract_text_from_image_util(data):
             qa_appman_chain = get_qa_chain(qa_appman_util)
             with get_openai_callback() as cb:
                 op = qa_appman_chain(message)
-                llm_cost = cb.total_cost
-                llm_tokens_used = cb.total_tokens
+                llm_cost += cb.total_cost
+                llm_tokens_used += cb.total_tokens
 
             result = json.loads(op["result"])
 
