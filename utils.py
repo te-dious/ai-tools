@@ -66,7 +66,22 @@ def extract_text_from_image_util(data):
     text = message + prompt_template
     text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
 
-    if len(message) < 200:
+    if len(message) < 300:
+        result = {
+            "document_type": "unidentified",
+        }
+        new_message = ExtractedData(
+            text=text,
+            text_hash=text_hash,
+            information=result,
+            identifier=identifier,
+            entity_type="unidentified",
+            vendor_name="",
+        )
+        db.session.add(new_message)
+        db.session.commit()
+        db.session.flush()
+
         return {
             "status": "unknown"
         }
@@ -136,7 +151,7 @@ def extract_text_from_image_util(data):
             return result
         else:
             result = {
-                "document_type": document_type,
+                "document_type": "unidentified",
             }
             new_message = ExtractedData(
                 text=text,
