@@ -34,6 +34,22 @@ Do not assume anything, strictly return unknown.
 {context}
 Question: {question}:"""
 
+DOCUMENT_PQ_IDENTIFICATION_PROMPT = """You are an AI trained to analyze and categorize document for an insurtech broker company in Thailand.
+You are provided the extracted text from the policy quotation document.
+Get all the relevant key value pairs from the document and return a structured JSON object with relevant information.
+Policy_quotation should have quotation_id, vehicle_number, vehicle_make, vehicle_model, vehicle_cc.
+Do not assume anything, strictly return unknown.
+{context}
+Question: {question}:"""
+
+DOCUMENT_IP_IDENTIFICATION_PROMPT = """You are an AI trained to analyze and categorize document for an insurtech broker company in Thailand.
+You are provided the extracted text from the payment proof document.
+Get all the relevant key value pairs from the document and return a structured JSON object with relevant information.
+Insurance_policy should have policy_number, policy_start_date, policy_end_date, vehicle_number, vehicle_make, vehicle_model, vehicle_cc.
+Do not assume anything, strictly return unknown.
+{context}
+Question: {question}:"""
+
 DOCUMENT_TYPE_INFO_PROMPT = """You are an AI trained to analyze and categorize document for an insurtech broker company in Thailand.
 You are provided the extracted text from the document with the given document_type.
 You need to find relevant information for an insurance platform and return a JSON with key value mapping.

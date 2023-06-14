@@ -11,7 +11,7 @@ from werkzeug.datastructures import FileStorage
 from helpers.chroma_db_util import ChromaDBUtil
 from helpers.retrieval_qa_util import RetrievalQAUtil
 from helpers.text_extractor import AppmanOcrUtils, GoogleVision
-from constants import DOCUMENT_TYPE_INFO_PROMPT, DOCUMENT_IDENTIFICATION_PROMPT, DOCUMENT_PP_IDENTIFICATION_PROMPT
+from constants import DOCUMENT_TYPE_INFO_PROMPT, DOCUMENT_IDENTIFICATION_PROMPT, DOCUMENT_PP_IDENTIFICATION_PROMPT, DOCUMENT_PQ_IDENTIFICATION_PROMPT, DOCUMENT_IP_IDENTIFICATION_PROMPT
 from extensions import db
 from sqlalchemy import desc
 from dotenv import load_dotenv
@@ -66,7 +66,7 @@ def extract_text_from_image_util(data):
     text = message + prompt_template
     text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
 
-    if len(message) < 50:
+    if len(message) < 200:
         return {
             "status": "unknown"
         }
@@ -106,10 +106,38 @@ def extract_text_from_image_util(data):
             qa_appman_chain = get_qa_chain(qa_appman_util)
             op = qa_appman_chain(message)
             result = json.loads(op["result"])
+        elif document_type.lower() == "policy_quotation":
+            data["prompt_template"] = DOCUMENT_PQ_IDENTIFICATION_PROMPT
+            qa_appman_util = get_qa_util(data)
+            qa_appman_chain = get_qa_chain(qa_appman_util)
+            op = qa_appman_chain(message)
+            result = json.loads(op["result"])
+        elif document_type.lower() == "insurance_policy":
+            data["prompt_template"] = DOCUMENT_IP_IDENTIFICATION_PROMPT
+            qa_appman_util = get_qa_util(data)
+            qa_appman_chain = get_qa_chain(qa_appman_util)
+            op = qa_appman_chain(message)
+            result = json.loads(op["result"])
 
         if result:
             result.pop("confidence", None)
             result["document_type"] = document_type
+            new_message = ExtractedData(
+                text=text,
+                text_hash=text_hash,
+                information=result,
+                identifier=identifier,
+                entity_type=document_type,
+                vendor_name=vendor,
+            )
+            db.session.add(new_message)
+            db.session.commit()
+            db.session.flush()
+            return result
+        else:
+            result = {
+                "document_type": document_type,
+            }
             new_message = ExtractedData(
                 text=text,
                 text_hash=text_hash,
