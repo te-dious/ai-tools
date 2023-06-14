@@ -1,6 +1,7 @@
 # models.py
 from extensions import db
 from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy import Numeric
 
 class ChatwootMessage(db.Model):
     __tablename__ = 'chatwoot_message'
@@ -24,3 +25,5 @@ class ExtractedData(db.Model):
     identifier = db.Column(db.Text, nullable=True)
     entity_type = db.Column(db.Text, nullable=True)
     vendor_name = db.Column(db.Text, nullable=True)
+    llm_cost = db.Column(Numeric(precision=10, scale=6), nullable=True)
+    llm_tokens_used = db.Column(db.Integer, nullable=True)

@@ -15,6 +15,7 @@ from constants import DOCUMENT_TYPE_INFO_PROMPT, DOCUMENT_IDENTIFICATION_PROMPT,
 from extensions import db
 from sqlalchemy import desc
 from dotenv import load_dotenv
+from langchain.callbacks import get_openai_callback
 load_dotenv()
 
 SQS_REGION_NAME = os.environ.get('SQS_REGION_NAME')
@@ -105,6 +106,8 @@ def extract_text_from_image_util(data):
         op = qa_appman_chain(message)
         document_type = op["result"]
         result = None
+        llm_cost = 0
+        llm_tokens_used = 0
         if document_type.lower() == "national_id":
             response = requests.get(url)
             file_obj = io.BytesIO(response.content)
@@ -119,19 +122,30 @@ def extract_text_from_image_util(data):
             data["prompt_template"] = DOCUMENT_PP_IDENTIFICATION_PROMPT
             qa_appman_util = get_qa_util(data)
             qa_appman_chain = get_qa_chain(qa_appman_util)
-            op = qa_appman_chain(message)
+            with get_openai_callback() as cb:
+                op = qa_appman_chain(message)
+                llm_cost = cb.total_cost
+                llm_tokens_used = cb.total_tokens
             result = json.loads(op["result"])
         elif document_type.lower() == "policy_quotation":
             data["prompt_template"] = DOCUMENT_PQ_IDENTIFICATION_PROMPT
             qa_appman_util = get_qa_util(data)
             qa_appman_chain = get_qa_chain(qa_appman_util)
-            op = qa_appman_chain(message)
+            with get_openai_callback() as cb:
+                op = qa_appman_chain(message)
+                llm_cost = cb.total_cost
+                llm_tokens_used = cb.total_tokens
+
             result = json.loads(op["result"])
         elif document_type.lower() == "insurance_policy":
             data["prompt_template"] = DOCUMENT_IP_IDENTIFICATION_PROMPT
             qa_appman_util = get_qa_util(data)
             qa_appman_chain = get_qa_chain(qa_appman_util)
-            op = qa_appman_chain(message)
+            with get_openai_callback() as cb:
+                op = qa_appman_chain(message)
+                llm_cost = cb.total_cost
+                llm_tokens_used = cb.total_tokens
+
             result = json.loads(op["result"])
 
         if result:
@@ -144,6 +158,8 @@ def extract_text_from_image_util(data):
                 identifier=identifier,
                 entity_type=document_type,
                 vendor_name=vendor,
+                llm_cost=llm_cost,
+                llm_tokens_used=llm_tokens_used
             )
             db.session.add(new_message)
             db.session.commit()
@@ -169,7 +185,10 @@ def extract_text_from_image_util(data):
     data["prompt_template"] = prompt_template
     qa_util = get_qa_util(data)
     qa_chain = get_qa_chain(qa_util)
-    op = qa_chain(message)
+    with get_openai_callback() as cb:
+        op = qa_chain(message)
+        llm_cost = cb.total_cost
+        llm_tokens_used = cb.total_tokens
     result = json.loads(op["result"])
     result["document_type"] = document_type
 
@@ -180,6 +199,8 @@ def extract_text_from_image_util(data):
         identifier=identifier,
         entity_type=document_type,
         vendor_name="openai",
+        llm_cost=llm_cost,
+        llm_tokens_used=llm_tokens_used
     )
 
     db.session.add(new_message)

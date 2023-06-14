@@ -7,6 +7,7 @@ from helpers.chroma_db_util import ChromaDBUtil
 from extensions import db
 from sqlalchemy import desc
 from dotenv import load_dotenv
+from langchain.callbacks import get_openai_callback
 
 load_dotenv()
 
@@ -214,7 +215,10 @@ def extract_chatwoot_conversation_info():
         }
         qa_util = get_qa_util(data)
         qa_chain = get_qa_chain(qa_util)
-        op = qa_chain(conversation_text)
+        with get_openai_callback() as cb:
+            op = qa_chain(conversation_text)
+            llm_cost = cb.total_cost
+            llm_tokens_used = cb.total_tokens
 
         result = json.loads(op["result"])
         result["contact"] = contact
@@ -223,7 +227,9 @@ def extract_chatwoot_conversation_info():
             text=conversation_text, # Should we store the whole text?
             text_hash=text_hash,
             information=result,
-            identifier=identifier
+            identifier=identifier,
+            llm_cost=llm_cost,
+            llm_tokens_used=llm_tokens_used
         )
 
         db.session.add(new_message)
@@ -267,7 +273,10 @@ def analyse_chatwoot_conversation():
         }
         qa_util = get_qa_util(data)
         qa_chain = get_qa_chain(qa_util)
-        op = qa_chain(conversation_text)
+        with get_openai_callback() as cb:
+            op = qa_chain(conversation_text)
+            llm_cost = cb.total_cost
+            llm_tokens_used = cb.total_tokens
 
         result = json.loads(op["result"])
         result["identifier"] = identifier
@@ -277,7 +286,9 @@ def analyse_chatwoot_conversation():
             text=conversation_text, # Should we store the whole text?
             text_hash=text_hash,
             information=result,
-            identifier=identifier
+            identifier=identifier,
+            llm_cost=llm_cost,
+            llm_tokens_used=llm_tokens_used
         )
 
         db.session.add(new_message)
